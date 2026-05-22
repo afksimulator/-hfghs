@@ -17,7 +17,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Animação")]
     private Animator anim;
-    public bool IsWalk;
+    public bool isWalk;
+
+    [Header("Cameras")]
+    [SerializeField] private GameObject playerCamera;
+    [Header("Particulas")]
+    [SerializeField] private ParticleSystem fxattack;
+    private bool isAttacking;
 
     private void Start()
     {
@@ -29,12 +35,10 @@ public class PlayerController : MonoBehaviour
     {
         moveInput = value.Get<Vector2>();
     }
+
     public void OnAttack()
     {
-        anim.SetTrigger("triggerAttack");
-        {
-
-        }
+        PlayerAttack();
     }
 
     private void Update()
@@ -44,22 +48,31 @@ public class PlayerController : MonoBehaviour
 
     private void PlayerMovement()
     {
+        //Pega  os eixos X e Z
         Vector3 direction =
-           new Vector3(moveInput.x, 0, moveInput.y);
+            new Vector3(moveInput.x, 0, moveInput.y);
+
+
         if (direction.magnitude > 0.1f)
         {
-            IsWalk = true;
-            float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; //calcula o ângulo baseado na direção do jogador
-            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0); //suaviza a rotação do jogador
 
-            //jogador rotaciona baseado na movimentação.
+            isWalk = true;
+
+            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;//Ele Calcula o angulo baseado na direção
+            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);//Suaviza a rotação
+
+            //Personagem Rotacione baseado na movimentação
             transform.rotation = Quaternion.Slerp(
-                transform.rotation, targetRotation, Time.deltaTime * 10f);
+                transform.rotation,
+                targetRotation,
+                Time.deltaTime * 10f);
         }
         else
         {
-            IsWalk = false;
+            isWalk = false;
         }
+
+
         controller.Move(
             direction *
             speedMovement *
@@ -69,14 +82,46 @@ public class PlayerController : MonoBehaviour
         {
             velocity.y = -2f;
         }
+
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
-        anim.SetBool("IsWalk", IsWalk);
+
+        anim.SetBool("isWalk", isWalk);
+
     }
 
-        private void PlayerAttack()
+
+    private void PlayerAttack()
     {
         anim.SetTrigger("triggerAttack");
+        fxattack.Emit(1);
+        isAttacking = true;
+    }
+    private void OnTrigger(Collider other)
+    {
+        switch (other.gameObject.tag)
+        {
+            case "CamTrigger":
+                playerCamera.SetActive(true);
+                break;
+
         }
+    }
+
+    private void OnTriggerExit(Collider other)
+
+    {
+        switch (other.gameObject.tag)
+        {
+            case "CamTrigger":
+                playerCamera.SetActive(true);
+                break;
+        }
+
+
+    }
 }
+    
+
+
 
